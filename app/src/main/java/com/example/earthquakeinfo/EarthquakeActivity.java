@@ -23,6 +23,13 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import android.graphics.Color;
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 
 import java.util.ArrayList;
@@ -53,12 +60,27 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderCallb
 
 
 
+        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_earthquake);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        // find a reference to the list in layout
+// find a reference to the list in layout
         ListView earthquakeListView = findViewById(R.id.list);
+
+// Push the toolbar below the status bar and keep the last item above the navigation bar
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
+            Insets bars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            v.setPadding(bars.left, bars.top, bars.right, 0);
+            earthquakeListView.setPadding(bars.left, 0, bars.right, bars.bottom);
+            return windowInsets;
+        });
+
+
+
 
         emptyStateTV = findViewById(R.id.empty_view);
         earthquakeListView.setEmptyView(emptyStateTV);

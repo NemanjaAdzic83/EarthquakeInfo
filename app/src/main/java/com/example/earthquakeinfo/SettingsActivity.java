@@ -1,67 +1,82 @@
 package com.example.earthquakeinfo;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
+import android.text.InputType;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
+import androidx.preference.PreferenceFragmentCompat;
+
+import android.graphics.Color;
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import android.view.View;
 /*
-    This activity is for customize the list of earthquakes
-    User will be able to select and display list of earthquakes by minimum magnitude or ordered by time
-
-    (U ovom fragmrentu mozemo promjeniti kako se zemljotresi prikazuju, korisnik ima opciju da se bira po vremenu tj skorije
-     zel=mljotresi das se )
+    Settings screen: the user can choose the minimum magnitude
+    and whether earthquakes are ordered by magnitude or by time.
  */
 public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
+        View container = findViewById(R.id.settings_container);
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
+            Insets bars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            v.setPadding(bars.left, bars.top, bars.right, 0);
+            container.setPadding(bars.left, 0, bars.right, bars.bottom);
+            return windowInsets;
+        });
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.settings_container, new EarthquakePreferenceFragment())
+                    .commit();
+        }
     }
 
-    //Interface definition for a callback to be invoked when the value of this Preference has been changed by the user
-    public static class EarthquakePreferenceFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
+    public static class EarthquakePreferenceFragment extends PreferenceFragmentCompat {
 
         @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.settings_main);
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            setPreferencesFromResource(R.xml.settings_main, rootKey);
 
-            Preference minMagnitude = findPreference(getString(R.string.setting_min_magnitude_key));
-            bindPreferenceSummaryToValue(minMagnitude);
-
-            Preference orderBy = findPreference(getString(R.string.settings_order_by_key));
-            bindPreferenceSummaryToValue(orderBy);
-        }
-
-        private void bindPreferenceSummaryToValue(Preference preference) {
-            preference.setOnPreferenceChangeListener(this);
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(preference.getContext());
-            String prefString = preferences.getString(preference.getKey(),"");
-            onPreferenceChange(preference,prefString);
-        }
-
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object newValue) {
-            String value = newValue.toString();
-            if (preference instanceof ListPreference){
-                ListPreference listPreference = (ListPreference) preference;
-                int prefIndex = listPreference.findIndexOfValue(value);
-                if (prefIndex >= 0) {
-                    CharSequence[] labels = listPreference.getEntries();
-                    preference.setSummary(labels[prefIndex]);
-                }
-            }else {
-                preference.setSummary(value);
+            EditTextPreference minMagnitude = findPreference(getString(R.string.setting_min_magnitude_key));
+            if (minMagnitude != null) {
+                // Show the current value as the summary
+                minMagnitude.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+                // Numeric keyboard (androidx ignores android:inputType in XML)
+                minMagnitude.setOnBindEditTextListener(editText ->
+                        editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL));
             }
-            return true;
+
+            ListPreference orderBy = findPreference(getString(R.string.settings_order_by_key));
+            if (orderBy != null) {
+                orderBy.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+            }
         }
     }
-
 }
