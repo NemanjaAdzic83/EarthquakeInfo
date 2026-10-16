@@ -6,16 +6,16 @@ public class Earthquake {
 
 
     // magnitude of the earthquake
-    private double magnitude;
+    private final double magnitude;
 
     // location of the earthquake
-    private String location;
+    private final String location;
 
     // time of the earthquake
-    private long time;
+    private final long time;
 
     // url of the earthquake (to find more details of the earthquake)
-    private String url;
+    private final String url;
 
 
     // constructor
