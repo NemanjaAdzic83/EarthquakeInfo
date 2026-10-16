@@ -5,177 +5,187 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
 
-
-
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /*
-        In Android, Adapter is a bridge between UI component and data source that helps us to fill data in UI component.
-        It holds the data and send the data to an Adapter view then view can takes the data from the adapter view
-        and shows the data on different views like as ListView, GridView, Spinner etc.
-        (Adapter se koristi kao most između UI komponenata  i podataka ,
-        podatke koje preuzimamo , preko adaptera prikazujemo korisniku pomoću UI)
+    Adapter is a bridge between the data (list of earthquakes) and the RecyclerView.
+    It creates a row (ViewHolder) for each visible earthquake and fills it with data.
+    (Adapter je most izmedju podataka i liste koju korisnik vidi.)
  */
+public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter.EarthquakeViewHolder> {
 
-public class EarthquakeAdapter extends ArrayAdapter<Earthquake> {
+    // Called when the user taps an earthquake in the list
+    public interface OnEarthquakeClickListener {
+        void onEarthquakeClick(Earthquake earthquake);
+    }
 
-    // with this constants we split location of the earthquake in primary and offset location
+    // USGS location looks like "74 km NW of Rumoi, Japan" - we split it at " of "
     private static final String LOCATION_SEPARATOR = " of ";
 
+    private final OnEarthquakeClickListener clickListener;
 
-    public EarthquakeAdapter(Context context, List<Earthquake> earthquakes) {
-        super(context, 0, earthquakes);
+    // Formatters are created once and reused for every row (creating them is relatively slow)
+    private final DateFormat dateFormat;
+    private final DateFormat timeFormat;
+    private final DecimalFormat magnitudeFormat = new DecimalFormat("0.0");
+
+    public EarthquakeAdapter(Context context, OnEarthquakeClickListener clickListener) {
+        super(DIFF_CALLBACK);
+        this.clickListener = clickListener;
+
+        // Date in the order used by the phone's language (e.g. "16. окт 2026." or "Oct 16, 2026")
+        Locale locale = Locale.getDefault();
+        String datePattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "ddMMMyyyy");
+        dateFormat = new SimpleDateFormat(datePattern, locale);
+        // Time in 24h or 12h format, following the phone's settings
+        timeFormat = android.text.format.DateFormat.getTimeFormat(context);
     }
 
     /*
-        getView display data at the specific  position in the data set
+        Creates a new row view. Called only for the few rows that fit on the screen;
+        those rows are then reused (recycled) while scrolling.
      */
     @NonNull
     @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+    public EarthquakeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.list_item, parent, false);
+        return new EarthquakeViewHolder(itemView);
+    }
 
-        // If there is not any existing view, than we inflate layout list_item.xml ,that represent one earthquake in a list
-        View listItemView = convertView;
-        if (listItemView == null){
-            listItemView = LayoutInflater.from(getContext()).inflate(R.layout.list_item,parent,false);
+    /*
+        Fills an existing row with the data of the earthquake at the given position.
+     */
+    @Override
+    public void onBindViewHolder(@NonNull EarthquakeViewHolder holder, int position) {
+        holder.bind(getItem(position));
+    }
+
+    /*
+        ViewHolder keeps references to the views of one row,
+        so findViewById is called only once per row, not on every scroll.
+     */
+    class EarthquakeViewHolder extends RecyclerView.ViewHolder {
+
+        private final TextView magnitudeView;
+        private final TextView locationOffsetView;
+        private final TextView primaryLocationView;
+        private final TextView dateView;
+        private final TextView timeView;
+
+        EarthquakeViewHolder(@NonNull View itemView) {
+            super(itemView);
+            magnitudeView = itemView.findViewById(R.id.textView_magnitude);
+            locationOffsetView = itemView.findViewById(R.id.textView_locationOffset);
+            primaryLocationView = itemView.findViewById(R.id.textView_primaryLocation);
+            dateView = itemView.findViewById(R.id.textView_date);
+            timeView = itemView.findViewById(R.id.textView_time);
+
+            itemView.setOnClickListener(v -> {
+                int position = getBindingAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    clickListener.onEarthquakeClick(getItem(position));
+                }
+            });
         }
 
-        // find the earthquake at the given position
-        Earthquake currentEarthquake = getItem(position);
+        void bind(Earthquake earthquake) {
+            Context context = itemView.getContext();
 
+            // Magnitude with one decimal, inside a circle colored by intensity.
+            // mutate() gives this row its own copy of the circle, so changing its color
+            // does not change the color of the circles in other rows.
+            magnitudeView.setText(magnitudeFormat.format(earthquake.getMagnitude()));
+            GradientDrawable magnitudeCircle = (GradientDrawable) magnitudeView.getBackground().mutate();
+            magnitudeCircle.setColor(getMagnitudeColor(context, earthquake.getMagnitude()));
 
-        // textview for the magnitude info
-        TextView tvMag = listItemView.findViewById(R.id.textView_magnitude);
-        // format magnitude (method below)
-        String formattedMagnitude = formatMagnitude(currentEarthquake.getMagnitude());
-        // set formatted magnitude to text view
-        tvMag.setText(formattedMagnitude);
+            // Split "74 km NW of Rumoi, Japan" into "74 km NW of" and "Rumoi, Japan"
+            String originalLocation = earthquake.getLocation();
+            if (originalLocation.contains(LOCATION_SEPARATOR)) {
+                String[] parts = originalLocation.split(LOCATION_SEPARATOR, 2);
+                locationOffsetView.setText(parts[0] + LOCATION_SEPARATOR);
+                primaryLocationView.setText(parts[1]);
+            } else {
+                locationOffsetView.setText(R.string.near_the);
+                primaryLocationView.setText(originalLocation);
+            }
 
-        // fetch the background from text view with GradientDrawable, and set proper color to the background
-        // wit method getMagnitudeColor
-        GradientDrawable magnitudeCircle = (GradientDrawable) tvMag.getBackground();
-        int magnitudeColor = getMagnitudeColor(currentEarthquake.getMagnitude());
-        magnitudeCircle.setColor(magnitudeColor);
-
-
-        // full location of the earthquake that we get from USGS
-        String originalLocation = currentEarthquake.getLocation();
-        // create two string for separation location into primary and offset location
-        String primaryLocation;
-        String locationOffset;
-
-        // if original location contains separator then we split string into two parts
-        // offset = first part + separator
-        if (originalLocation.contains(LOCATION_SEPARATOR)){
-            String[] parts = originalLocation.split(LOCATION_SEPARATOR);
-            locationOffset = parts[0] + LOCATION_SEPARATOR;
-            primaryLocation = parts[1];
-            // if there is not separator then instead put the "Near the" string
-        }else {
-            locationOffset = getContext().getString(R.string.near_the);
-            primaryLocation = originalLocation;
+            Date date = new Date(earthquake.getTime());
+            dateView.setText(dateFormat.format(date));
+            timeView.setText(timeFormat.format(date));
         }
-
-        // find textview for primary location and set text
-        TextView tvPrimaryLocation = listItemView.findViewById(R.id.textView_primaryLocation);
-        tvPrimaryLocation.setText(primaryLocation);
-
-        // find textview for offset location and set text
-        TextView tvLocationOffset = listItemView.findViewById(R.id.textView_locationOffset);
-        tvLocationOffset.setText(locationOffset);
-
-        // create new Date object, get a time from USGS and formatted it
-        Date dateObject = new Date(currentEarthquake.getTime());
-
-
-        TextView tvDate = listItemView.findViewById(R.id.textView_date);
-        // format the date string
-        String formattedDate = formatDate(dateObject);
-        tvDate.setText(formattedDate);
-
-
-        TextView tvTime = listItemView.findViewById(R.id.textView_time);
-        // format the time string
-        String formattedTime = formatTime(dateObject);
-        tvTime.setText(formattedTime);
-
-
-        return listItemView;
-
-
     }
 
-    // format date string from the Date object
-    private String formatDate(Date dateObject){
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL, yyyy");
-        return dateFormat.format(dateObject);
-    }
-
-    // format time string from the Date object
-    private String formatTime(Date dateObject){
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-        return timeFormat.format(dateObject);
-    }
-
-    // format magnitude to show one decimal place
-    private String formatMagnitude(double magnitude){
-        DecimalFormat decimalFormat = new DecimalFormat("0.0");
-        return decimalFormat.format(magnitude);
-    }
-
-    // return the color for the magnitude circle based on the intensity of the earthquake
-    // (pomocu switch izraza i medode floor iz Math klase podesavamo boju u zavisnosti od jacine magnitude)
-    private int getMagnitudeColor(double magnitude){
-        int magnitudeColorResourceID;
-        // use Math class - "floor" ,means finding the closest integer less than the decimal value (1.2 is 1)
-        int magnitudeFloor = (int) Math.floor(magnitude);
-        switch (magnitudeFloor){
+    // Returns the circle color for the magnitude (1 = blue ... 10+ = dark red)
+    private static int getMagnitudeColor(Context context, double magnitude) {
+        int colorResId;
+        switch ((int) Math.floor(magnitude)) {
             case 0:
             case 1:
-                magnitudeColorResourceID = R.color.magnitude1;
+                colorResId = R.color.magnitude1;
                 break;
             case 2:
-                magnitudeColorResourceID = R.color.magnitude2;
+                colorResId = R.color.magnitude2;
                 break;
             case 3:
-                magnitudeColorResourceID = R.color.magnitude3;
+                colorResId = R.color.magnitude3;
                 break;
             case 4:
-                magnitudeColorResourceID = R.color.magnitude4;
+                colorResId = R.color.magnitude4;
                 break;
             case 5:
-                magnitudeColorResourceID = R.color.magnitude5;
+                colorResId = R.color.magnitude5;
                 break;
             case 6:
-                magnitudeColorResourceID = R.color.magnitude6;
+                colorResId = R.color.magnitude6;
                 break;
             case 7:
-                magnitudeColorResourceID = R.color.magnitude7;
+                colorResId = R.color.magnitude7;
                 break;
             case 8:
-                magnitudeColorResourceID = R.color.magnitude8;
+                colorResId = R.color.magnitude8;
                 break;
             case 9:
-                magnitudeColorResourceID = R.color.magnitude9;
+                colorResId = R.color.magnitude9;
                 break;
             default:
-                magnitudeColorResourceID = R.color.magnitude10plus;
+                colorResId = R.color.magnitude10plus;
                 break;
-
         }
-
-        // ContextCompat.getColor convert the color resource ID into an actual integer color value
-        // ContextCompat just returns an integer representation of your color
-        return ContextCompat.getColor(getContext(), magnitudeColorResourceID);
+        // Converts the color resource ID into an actual color value
+        return ContextCompat.getColor(context, colorResId);
     }
+
+    /*
+        Tells the list which earthquakes are the same and whether their data changed,
+        so only the changed rows are redrawn (with animation) when a new list arrives.
+     */
+    private static final DiffUtil.ItemCallback<Earthquake> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Earthquake>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Earthquake oldItem, @NonNull Earthquake newItem) {
+                    // Every USGS event has its own unique URL
+                    return Objects.equals(oldItem.getUrl(), newItem.getUrl());
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull Earthquake oldItem, @NonNull Earthquake newItem) {
+                    return oldItem.getMagnitude() == newItem.getMagnitude()
+                            && oldItem.getTime() == newItem.getTime()
+                            && Objects.equals(oldItem.getLocation(), newItem.getLocation());
+                }
+            };
 }

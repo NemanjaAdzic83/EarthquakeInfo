@@ -6,7 +6,10 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="16dp"
-    android:background="@drawable/custom_shape">
+    android:background="@drawable/custom_shape"
+    android:foreground="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
     <TextView
         android:id="@+id/textView_magnitude"
