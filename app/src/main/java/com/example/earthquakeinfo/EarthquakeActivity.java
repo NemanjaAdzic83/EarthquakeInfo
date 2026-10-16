@@ -1,65 +1,55 @@
 package com.example.earthquakeinfo;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.app.LoaderManager;
-import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
-
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-
-
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import android.graphics.Color;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
+import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 
-public class EarthquakeActivity extends AppCompatActivity implements LoaderCallbacks<List<Earthquake>>,
-        SharedPreferences.OnSharedPreferenceChangeListener{
+public class EarthquakeActivity extends AppCompatActivity {
 
-
+    // URL for earthquake data from USGS (query parameters are added in buildRequestUrl)
+    private static final String USGS_REQUEST_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query";
 
     // textview that is displayed when the list is empty
     private TextView emptyStateTV;
 
+    // loading indicator shown while data is being downloaded
+    private View loadingIndicator;
+
     // adapter for the list of earthquakes
     private EarthquakeAdapter adapter;
 
-    // constant value for the earthquake loader ID
-    private static final int EARTHQUKE_LOADER_ID =  1;
-
-    // URL for earthquake data from USGS
-    private static final String USGS_REQUEST_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.0";
-    // https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-01-01&endtime=2014-01-02
-    //
-    // "https://earthquake.usgs.gov/fdsnws/event/1/query";
+    // loads earthquakes in the background and keeps them across screen rotation
+    private EarthquakeViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-
-
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_earthquake);
@@ -67,10 +57,10 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderCallb
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-// find a reference to the list in layout
+        // find a reference to the list in layout
         ListView earthquakeListView = findViewById(R.id.list);
 
-// Push the toolbar below the status bar and keep the last item above the navigation bar
+        // Push the toolbar below the status bar and keep the last item above the navigation bar
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
             Insets bars = windowInsets.getInsets(
                     WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
@@ -79,134 +69,101 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderCallb
             return windowInsets;
         });
 
-
-
-
         emptyStateTV = findViewById(R.id.empty_view);
         earthquakeListView.setEmptyView(emptyStateTV);
 
-        // create an adapter that takes an empty list of earthquake as input
-       adapter = new EarthquakeAdapter(this,new ArrayList<Earthquake>());
+        loadingIndicator = findViewById(R.id.lloading_indicator);
 
-       // set the adapter in listview
+        // create an adapter that takes an empty list of earthquakes as input
+        adapter = new EarthquakeAdapter(this, new ArrayList<>());
         earthquakeListView.setAdapter(adapter);
 
-
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        preferences.registerOnSharedPreferenceChangeListener(this);
-
-
-        // set an item click listener on the listview, which sends an intent to the web browser
-        // to open a website with  more information about selected earthquake
-        earthquakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //find the current earthquake that was clicked on
-                Earthquake currentEarthquake = adapter.getItem(position);
-
-                //convert the string url into a Uri object
+        // open the USGS web page with more details when an earthquake is clicked
+        earthquakeListView.setOnItemClickListener((parent, view, position, id) -> {
+            Earthquake currentEarthquake = adapter.getItem(position);
+            if (currentEarthquake != null) {
                 Uri earthquakeUri = Uri.parse(currentEarthquake.getUrl());
-
-                //create a new intent to view the earthquake uri
-                Intent websiteIntent = new Intent(Intent.ACTION_VIEW,earthquakeUri);
-
-                //send the intent to launch a new activity
-                startActivity(websiteIntent);
+                startActivity(new Intent(Intent.ACTION_VIEW, earthquakeUri));
             }
         });
 
-
-        // get a reference to the ConnectivityManager to check state of network connectivity
-
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        // get details on the currently active default data network
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-
-        if (networkInfo != null && networkInfo.isConnected()){
-            // get the reference to the LoadManager , in order to interact
-            LoaderManager loaderManager =  getLoaderManager();
-
-            /*
-                initialize the loader. pass in the int ID constant
-             */
-
-            loaderManager.initLoader(EARTHQUKE_LOADER_ID, null, this);
-
-        }else {
-            // hide loading indicator so error message will be visible
-            View loadingIndicator =  findViewById(R.id.lloading_indicator);
+        // show the earthquakes whenever the ViewModel delivers a new list
+        viewModel = new ViewModelProvider(this).get(EarthquakeViewModel.class);
+        viewModel.getEarthquakes().observe(this, earthquakes -> {
             loadingIndicator.setVisibility(View.GONE);
+            emptyStateTV.setText(R.string.no_earthquakes);
 
-            emptyStateTV.setText(R.string.no_internet_connection);
-        }
-
-
-
-
-//        EarthquakeAsyncTask task = new EarthquakeAsyncTask();
-//        task.execute(USGS_REQUEST_URL);
+            adapter.clear();
+            if (earthquakes != null && !earthquakes.isEmpty()) {
+                adapter.addAll(earthquakes);
+            }
+        });
     }
 
     @Override
-    public Loader<List<Earthquake>> onCreateLoader(int id, Bundle args) {
+    protected void onStart() {
+        super.onStart();
+        // Called on first start and when returning from Settings:
+        // downloads data only if there is none yet or the settings have changed
+        loadEarthquakes();
+    }
 
+    private void loadEarthquakes() {
+        if (!isOnline()) {
+            if (adapter.isEmpty()) {
+                loadingIndicator.setVisibility(View.GONE);
+                emptyStateTV.setText(R.string.no_internet_connection);
+            }
+            // try again next time the screen is shown
+            viewModel.reset();
+            return;
+        }
+
+        if (viewModel.load(buildRequestUrl())) {
+            // a new request was started: clear the old list and show the loading indicator
+            adapter.clear();
+            emptyStateTV.setText("");
+            loadingIndicator.setVisibility(View.VISIBLE);
+        }
+    }
+
+    // Builds the USGS query URL from the user's settings
+    private String buildRequestUrl() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         String minMagnitude = sharedPreferences.getString(
                 getString(R.string.setting_min_magnitude_key),
                 getString(R.string.setting_min_magnitude_default));
+        if (TextUtils.isEmpty(minMagnitude)) {
+            minMagnitude = getString(R.string.setting_min_magnitude_default);
+        }
 
         String orderBy = sharedPreferences.getString(
                 getString(R.string.settings_order_by_key),
                 getString(R.string.settings_order_by_default));
+        // older versions of the app could have saved "Magnitude" instead of "magnitude"
+        orderBy = orderBy.toLowerCase(Locale.ROOT);
 
-        Uri baseUri = Uri.parse(USGS_REQUEST_URL);
-        Uri.Builder builder = baseUri.buildUpon();
-
-        builder.appendQueryParameter("format","geojson");
-        builder.appendQueryParameter("limit","25");
-        builder.appendQueryParameter("minmag",minMagnitude);
-        builder.appendQueryParameter("orderby",orderBy);
-
-
-        return new EarthquakeLoader(this,builder.toString());
+        return Uri.parse(USGS_REQUEST_URL).buildUpon()
+                .appendQueryParameter("format", "geojson")
+                .appendQueryParameter("limit", "25")
+                .appendQueryParameter("minmagnitude", minMagnitude)
+                .appendQueryParameter("orderby", orderBy)
+                .build()
+                .toString();
     }
 
-    @Override
-    public void onLoadFinished(Loader<List<Earthquake>> loader, List<Earthquake> earthquakes) {
-
-
-//        ConnectivityManager connectivityManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-//        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-//        if (networkInfo == null){
-//            emptyStateTV.setText(R.string.no_internet_connection);
-//        }else if (networkInfo.isConnected()){
-//            emptyStateTV.setText(R.string.no_earthquakes);
-//        }
-
-        // hide loading indicator because data has been loaded
-        View loadingIndicator =  findViewById(R.id.lloading_indicator);
-        loadingIndicator.setVisibility(View.GONE);
-
-        // set empty state txt to display that no quake if found
-        emptyStateTV.setText(R.string.no_earthquakes);
-
-
-        // clear adapter of previous earthquake data
-        // adapter.clear();
-
-        //// if there  is a valid list of earthquakes then add them to the adapter. This will trigger list to update
-        if (earthquakes != null && !earthquakes.isEmpty()){
-            //comment this to show no earthquakes message
-            adapter.addAll(earthquakes);
+    // Returns true if the device has a working internet connection
+    private boolean isOnline() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager == null) {
+            return false;
         }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<List<Earthquake>> loader) {
-
-        adapter.clear();
-
+        Network network = connectivityManager.getActiveNetwork();
+        NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+        return capabilities != null
+                && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
     }
 
     @Override
@@ -217,31 +174,10 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderCallb
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings){
-            Intent settingsIntent = new Intent(this, SettingsActivity.class);
-            startActivity(settingsIntent);
+        if (item.getItemId() == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-        if (s.equals(getString(R.string.setting_min_magnitude_key)) || s.equals(getString(R.string.settings_order_by_key))){
-            adapter.clear();
-
-            emptyStateTV.setVisibility(View.GONE);
-
-            View loadingIndicator = findViewById(R.id.lloading_indicator);
-            loadingIndicator.setVisibility(View.VISIBLE);
-
-            getLoaderManager().restartLoader(EARTHQUKE_LOADER_ID, null,this);
-        }
-
-    }
-
-
-
-
 }
