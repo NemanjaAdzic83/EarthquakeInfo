@@ -1,45 +1,98 @@
 package com.example.earthquakeinfo;
 
+import android.app.Application;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// Loads the list of earthqukes on a background thread and keeps it  while the activity is recreated
-public class EarthquakeViewModel extends ViewModel {
+/*
+    Holds the state of the main screen and survives screen rotation.
+    Decides WHEN to load data and turns the result into an EarthquakeUiState.
+    The Activity only observes the state and draws it.
+ */
+public class EarthquakeViewModel extends AndroidViewModel {
 
+    private static final String LOG_TAG = "EarthquakeViewModel";
+
+    private final EarthquakeRepository repository;
+
+    // One background thread for network requests
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    private final MutableLiveData<List<Earthquake>> earthquakes = new MutableLiveData<>();
+    private final MutableLiveData<EarthquakeUiState> uiState = new MutableLiveData<>();
 
-    // URL of the last request , so the same data is not downloaded twice
+    // URL of the last request, used to detect changed settings and to ignore outdated results
     private volatile String lastUrl;
 
-    public LiveData<List<Earthquake>> getEarthquakes(){
-        return earthquakes;
+    // AndroidViewModel receives the Application, which the repository needs for settings and network
+    public EarthquakeViewModel(@NonNull Application application) {
+        super(application);
+        repository = new EarthquakeRepository(application);
     }
 
-    public boolean load(String url){
-        if (url.equals(lastUrl)){
-            return false;
+    public LiveData<EarthquakeUiState> getUiState() {
+        return uiState;
+    }
+
+    /*
+        Called every time the screen becomes visible (onStart).
+        Loads data only the first time, after the settings have changed,
+        or if the previous attempt failed.
+     */
+    public void loadIfNeeded() {
+        String url = repository.getRequestUrl();
+        EarthquakeUiState current = uiState.getValue();
+
+        boolean settingsChanged = !url.equals(lastUrl);
+        boolean lastAttemptFailed = current == null
+                || current.getStatus() == EarthquakeUiState.Status.NO_INTERNET
+                || current.getStatus() == EarthquakeUiState.Status.ERROR;
+
+        if (settingsChanged || lastAttemptFailed) {
+            load(url);
         }
+    }
+
+    // Always downloads fresh data (used later for pull-to-refresh and the "Retry" button)
+    public void refresh() {
+        load(repository.getRequestUrl());
+    }
+
+    public void load(String url) {
         lastUrl = url;
+
+        if (!repository.isOnline()) {
+            uiState.setValue(EarthquakeUiState.noInternet());
+            return;
+        }
+
+        uiState.setValue(EarthquakeUiState.loading());
+
         executor.execute(() -> {
-            List<Earthquake> result = QueryUtils.fetchEarthquakeData(url);
+            EarthquakeUiState newState;
+            try {
+                List<Earthquake> earthquakes = repository.fetchEarthquakes(url);
+                newState = earthquakes.isEmpty()
+                        ? EarthquakeUiState.empty()
+                        : EarthquakeUiState.success(earthquakes);
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Loading earthquakes failed", e);
+                newState = EarthquakeUiState.error();
+            }
+
             // Ignore the result if a newer request was started in the meantime
-            if (url.equals(lastUrl)){
-                earthquakes.postValue(result);
+            if (url.equals(lastUrl)) {
+                uiState.postValue(newState);
             }
         });
-        return true;
-    }
-
-    // Forget the last URL so the next load() downloads the data again
-    public void reset(){
-        lastUrl = null;
     }
 
     @Override
