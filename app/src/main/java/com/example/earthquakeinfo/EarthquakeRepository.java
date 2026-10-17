@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import androidx.preference.PreferenceManager;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 

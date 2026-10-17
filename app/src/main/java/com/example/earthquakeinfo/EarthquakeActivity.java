@@ -1,16 +1,11 @@
 package com.example.earthquakeinfo;
 
-import android.content.Context;
+
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,14 +19,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 
 import com.example.earthquakeinfo.databinding.ActivityEarthquakeBinding;
 
-import java.net.URL;
-import java.util.Collections;
-import java.util.Locale;
 
 public class EarthquakeActivity extends AppCompatActivity {
 

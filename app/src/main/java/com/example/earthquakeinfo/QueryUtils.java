@@ -1,7 +1,6 @@
 package com.example.earthquakeinfo;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,35 +22,28 @@ import java.util.List;
  */
 public final class QueryUtils {
 
-    // tag for the LOG messages
-    public static final String LOG_TAG = "QueryUtils";
-
     // Networks timeouts in milliseconds
     private static final int READ_TIMEOUT_MS = 10000;
     private static final int CONNECT_TIMEOUT_MS = 15000;
 
 
-/*
-    Private constructor is created that prevent creating instances of this class, all variables and method are static and
-    that means that they could be called directly without creating objects of class
- */
+    /*
+        Private constructor is created that prevent creating instances of this class, all variables and method are static and
+        that means that they could be called directly without creating objects of class
+     */
     private QueryUtils(){
 
     }
 
     /*
-
+        Downloads the earthquake data from the given URL and returns a list of earthquakes.
+        Must be called on a background thread.
+        Throws IOException if there is no answer from the server or the answer is invalid,
+        so the caller can show an error message instead of an empty list.
      */
-    public static List<Earthquake> fetchEarthquakeData(String requestUrl){
-
+    public static List<Earthquake> fetchEarthquakeData(String requestUrl) throws IOException {
         URL url = createUrl(requestUrl);
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = makeHttpRequest(url);
-        }catch (IOException e){
-            Log.e(LOG_TAG, "Problem making the HTTP request",e);
-        }
+        String jsonResponse = makeHttpRequest(url);
         return extractEarthquakesFromJson(jsonResponse);
     }
 
@@ -60,12 +52,11 @@ public final class QueryUtils {
     /*
         Returns new URL object from the given string URL
      */
-    private static URL createUrl(String stringUrl){
+    private static URL createUrl(String stringUrl) throws IOException {
         try {
             return new URL(stringUrl);
         } catch (MalformedURLException e) {
-            Log.e(LOG_TAG,"Invalid URL: " + stringUrl,e);
-            return null;
+            throw new IOException("Invalid URL: " + stringUrl, e);
         }
     }
 
@@ -73,11 +64,6 @@ public final class QueryUtils {
         Make http request to the given URL and return a String as the response
      */
     private static String makeHttpRequest(URL url) throws IOException {
-
-        //if the url is null, then return early
-        if (url == null){
-           return "";
-        }
 
         HttpURLConnection urlConnection = null;
 
@@ -94,8 +80,7 @@ public final class QueryUtils {
 
             int responseCode = urlConnection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK){
-                Log.e(LOG_TAG,"Error response code: " + responseCode);
-                return "";
+                throw new IOException("Error response code: " + responseCode);
             }
             try (InputStream inputStream = urlConnection.getInputStream()){
                 return readFromStream(inputStream);
@@ -123,11 +108,11 @@ public final class QueryUtils {
         }
         return output.toString();
 
-        }
+    }
 
-        // Parses the JSON response from USGS and returns a list of Earthquake object
-    // Returns an empty list if the JSON is empty or invalid
-    private static List<Earthquake> extractEarthquakesFromJson(String earthquakeJson) {
+    // Parses the JSON response from USGS and returns a list of Earthquake object
+    // Returns an empty list if the JSON is empty, throws IOException if it is invalid
+    private static List<Earthquake> extractEarthquakesFromJson(String earthquakeJson) throws IOException {
         List<Earthquake> earthquakes = new ArrayList<>();
 
         if (TextUtils.isEmpty(earthquakeJson)){
@@ -152,15 +137,10 @@ public final class QueryUtils {
                 earthquakes.add(new Earthquake(magnitude, place, time, url));
             }
         }catch (JSONException e){
-            Log.e(LOG_TAG, "Problem parsing the earthquake JSON results",e);
+            throw new IOException("Problem parsing the earthquake JSON results", e);
         }
         return earthquakes;
     }
 
 
-    }
-
-
-
-
-
+}
