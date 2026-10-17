@@ -66,7 +66,7 @@ public class EarthquakeViewModel extends AndroidViewModel {
         load(repository.getRequestUrl());
     }
 
-    public void load(String url) {
+    private void load(String url) {
         lastUrl = url;
 
         if (!repository.isOnline()) {

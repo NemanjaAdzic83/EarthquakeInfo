@@ -3,7 +3,6 @@ package com.example.earthquakeinfo;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -14,12 +13,10 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DividerItemDecoration;
 
 import com.example.earthquakeinfo.databinding.ActivityEarthquakeBinding;
 
@@ -59,14 +56,6 @@ public class EarthquakeActivity extends AppCompatActivity {
             startActivity(new Intent(Intent.ACTION_VIEW,earthquakeUri));
         });
         binding.list.setAdapter(adapter);
-
-        // thin line between the rows
-        DividerItemDecoration divider = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
-        Drawable dividerDrawable = ContextCompat.getDrawable(this, R.drawable.list_divider);
-        if (dividerDrawable != null) {
-            divider.setDrawable(dividerDrawable);
-        }
-        binding.list.addItemDecoration(divider);
 
         // show the earthquakes whenever the ViewModel delivers a new list
         viewModel = new ViewModelProvider(this).get(EarthquakeViewModel.class);

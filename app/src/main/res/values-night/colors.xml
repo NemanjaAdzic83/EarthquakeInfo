@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Theme colors for DARK mode. Android uses this file instead of values/colors.xml
+     when the phone is in dark mode. Only the colors that differ are listed here. -->
+<resources>
+    <color name="color_primary">#10CAC9</color>
+    <color name="color_on_primary">#00302F</color>
+    <color name="color_background">#141C23</color>
+    <color name="color_surface">#22303C</color>
+    <color name="color_on_surface">#E3E8EC</color>
+    <color name="color_on_surface_variant">#A9B4BD</color>
+    <color name="toolbar_background">@color/brand_navy_dark</color>
+</resources>

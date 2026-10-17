@@ -20,7 +20,7 @@ public class EarthquakeUiState {
     private final Status status;
     private final List<Earthquake> earthquakes;
 
-    public EarthquakeUiState(Status status, List<Earthquake> earthquakes) {
+    private EarthquakeUiState(Status status, List<Earthquake> earthquakes) {
         this.status = status;
         this.earthquakes = earthquakes;
     }

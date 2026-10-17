@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#2b3d4d</color>
-    <color name="colorPrimaryDark">#23303d</color>
-    <color name="colorAccent">#10cac9</color>
+    <!-- Brand colors (the same in light and dark mode) -->
+    <color name="brand_navy">#2B3D4D</color>
+    <color name="brand_navy_dark">#1E2A35</color>
+    <color name="brand_teal">#10CAC9</color>
+
+    <!-- Theme colors for LIGHT mode. values-night/colors.xml has the same names for DARK mode -->
+    <color name="color_primary">#00797A</color>
+    <color name="color_on_primary">#FFFFFF</color>
+    <color name="color_background">#EEF1F4</color>
+    <color name="color_surface">#FFFFFF</color>
+    <color name="color_on_surface">#1D2830</color>
+    <color name="color_on_surface_variant">#5B6670</color>
+    <color name="toolbar_background">@color/brand_navy</color>
 
     <!-- colors for earthquake magnitude-->
     <color name="magnitude1">#4a7ba7</color>
@@ -15,9 +25,4 @@
     <color name="magnitude8">#e13a20</color>
     <color name="magnitude9">#d93218</color>
     <color name="magnitude10plus">#c03823</color>
-
-    <color name="textColorEarthquakeDetails">#b4bac0</color>
-
-    <color name="textColorEarthquakeLocation">#2B3D4D</color>
-
 </resources>
