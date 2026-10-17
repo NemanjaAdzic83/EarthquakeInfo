@@ -3,15 +3,14 @@ package com.example.earthquakeinfo;
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.earthquakeinfo.databinding.ListItemBinding;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -61,9 +60,9 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
     @NonNull
     @Override
     public EarthquakeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.list_item, parent, false);
-        return new EarthquakeViewHolder(itemView);
+        ListItemBinding binding = ListItemBinding.inflate(
+                LayoutInflater.from(parent.getContext()),parent,false);
+        return new EarthquakeViewHolder(binding);
     }
 
     /*
@@ -80,19 +79,12 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
      */
     class EarthquakeViewHolder extends RecyclerView.ViewHolder {
 
-        private final TextView magnitudeView;
-        private final TextView locationOffsetView;
-        private final TextView primaryLocationView;
-        private final TextView dateView;
-        private final TextView timeView;
+        private final ListItemBinding binding;
 
-        EarthquakeViewHolder(@NonNull View itemView) {
-            super(itemView);
-            magnitudeView = itemView.findViewById(R.id.textView_magnitude);
-            locationOffsetView = itemView.findViewById(R.id.textView_locationOffset);
-            primaryLocationView = itemView.findViewById(R.id.textView_primaryLocation);
-            dateView = itemView.findViewById(R.id.textView_date);
-            timeView = itemView.findViewById(R.id.textView_time);
+        EarthquakeViewHolder(@NonNull ListItemBinding binding) {
+
+            super(binding.getRoot());
+            this.binding = binding;
 
             itemView.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
@@ -108,24 +100,24 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
             // Magnitude with one decimal, inside a circle colored by intensity.
             // mutate() gives this row its own copy of the circle, so changing its color
             // does not change the color of the circles in other rows.
-            magnitudeView.setText(magnitudeFormat.format(earthquake.getMagnitude()));
-            GradientDrawable magnitudeCircle = (GradientDrawable) magnitudeView.getBackground().mutate();
+            binding.textViewMagnitude.setText(magnitudeFormat.format(earthquake.getMagnitude()));
+            GradientDrawable magnitudeCircle = (GradientDrawable) binding.textViewMagnitude.getBackground().mutate();
             magnitudeCircle.setColor(getMagnitudeColor(context, earthquake.getMagnitude()));
 
             // Split "74 km NW of Rumoi, Japan" into "74 km NW of" and "Rumoi, Japan"
             String originalLocation = earthquake.getLocation();
             if (originalLocation.contains(LOCATION_SEPARATOR)) {
                 String[] parts = originalLocation.split(LOCATION_SEPARATOR, 2);
-                locationOffsetView.setText(parts[0] + LOCATION_SEPARATOR);
-                primaryLocationView.setText(parts[1]);
+                binding.textViewLocationOffset.setText(parts[0] + LOCATION_SEPARATOR);
+                binding.textViewPrimaryLocation.setText(parts[1]);
             } else {
-                locationOffsetView.setText(R.string.near_the);
-                primaryLocationView.setText(originalLocation);
+                binding.textViewLocationOffset.setText(R.string.near_the);
+                binding.textViewPrimaryLocation.setText(originalLocation);
             }
 
             Date date = new Date(earthquake.getTime());
-            dateView.setText(dateFormat.format(date));
-            timeView.setText(timeFormat.format(date));
+            binding.textViewDate.setText(dateFormat.format(date));
+            binding.textViewTime.setText(timeFormat.format(date));
         }
     }
 

@@ -6,17 +6,20 @@ import android.text.InputType;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import android.graphics.Color;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import android.view.View;
+
+
+import com.example.earthquakeinfo.databinding.ActivitySettingsBinding;
+
 /*
     Settings screen: the user can choose the minimum magnitude
     and whether earthquakes are ordered by magnitude or by time.
@@ -27,20 +30,19 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        ActivitySettingsBinding binding = ActivitySettingsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
+        setSupportActionBar(binding.toolbar);
+        if (getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        View container = findViewById(R.id.settings_container);
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar, (v,windowInsets) ->{
             Insets bars = windowInsets.getInsets(
                     WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(bars.left, bars.top, bars.right, 0);
-            container.setPadding(bars.left, 0, bars.right, bars.bottom);
+            v.setPadding(bars.left,bars.top,bars.right,0);
+            binding.settingsContainer.setPadding(bars.left,0,bars.right,bars.bottom);
             return windowInsets;
         });
 
@@ -71,12 +73,25 @@ public class SettingsActivity extends AppCompatActivity {
                 // Numeric keyboard (androidx ignores android:inputType in XML)
                 minMagnitude.setOnBindEditTextListener(editText ->
                         editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+                // Go back to the list as soon as a new value is chosen
+                minMagnitude.setOnPreferenceChangeListener(this::saveAndClose);
             }
 
             ListPreference orderBy = findPreference(getString(R.string.settings_order_by_key));
             if (orderBy != null) {
                 orderBy.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+                orderBy.setOnPreferenceChangeListener(this::saveAndClose);
             }
+        }
+
+        /*
+            Called when the user picks a new value
+            Returning true tells Android to save a value. then we close the Settings screen and EarthquakeActivity reloads the list in onStart()
+            with the new setting
+         */
+        private boolean saveAndClose(Preference preference, Object newValue) {
+            requireActivity().finish();
+            return true;
         }
     }
 }
