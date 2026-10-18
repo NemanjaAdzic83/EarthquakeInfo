@@ -57,6 +57,14 @@ public class EarthquakeActivity extends AppCompatActivity {
         });
         binding.list.setAdapter(adapter);
 
+        //Pull down to refresh , always download fresh data
+        binding.swipeRefresh.setColorSchemeResources(R.color.color_primary);
+        binding.swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.color_surface);
+        binding.swipeRefresh.setOnRefreshListener(() -> viewModel.refresh());
+
+        // Try again button below the error message
+        binding.retryButton.setOnClickListener( v -> viewModel.refresh());
+
         // show the earthquakes whenever the ViewModel delivers a new list
         viewModel = new ViewModelProvider(this).get(EarthquakeViewModel.class);
         viewModel.getUiState().observe(this, this::render);
@@ -70,24 +78,38 @@ public class EarthquakeActivity extends AppCompatActivity {
         viewModel.loadIfNeeded();
     }
 
+    /* Draws the screen for the given state
+       This is the  only place that change the visibility of the list, message and indicators
+     */
     private void render(EarthquakeUiState state){
         adapter.submitList(state.getEarthquakes());
 
-        binding.loadingIndicator.setVisibility(state.getStatus() == EarthquakeUiState.Status.LOADING ? View.VISIBLE : View.GONE);
+        boolean loading = state.getStatus() == EarthquakeUiState.Status.LOADING;
+
+        // The pull-to-refresh spinner disappears as soon as loading is finished
+        if (!loading){
+            binding.swipeRefresh.setRefreshing(false);
+        }
+
+        boolean showCenterIndicator = loading && !binding.swipeRefresh.isRefreshing() && state.getEarthquakes().isEmpty();
+        binding.loadingIndicator.setVisibility(showCenterIndicator ? View.VISIBLE : View.GONE);
+
+
 
         switch (state.getStatus()){
-            case EMPTY -> showMessage(R.string.no_earthquakes);
-            case NO_INTERNET -> showMessage(R.string.no_internet_connection);
-            case ERROR -> showMessage(R.string.error_loading);
-            default -> binding.emptyView.setVisibility(View.GONE);
+            case EMPTY -> showMessage(R.string.no_earthquakes,false);
+            case NO_INTERNET -> showMessage(R.string.no_internet_connection,true);
+            case ERROR -> showMessage(R.string.error_loading,true);
+            default -> binding.messageContainer.setVisibility(View.GONE);
         }
     }
 
 
-    // Shows a message in the middle of the screen instead of the list
-    private void showMessage(@StringRes int messageResId) {
+    // Shows a message in the middle of the screen instead of the list, with the "Try button" when it makes sense to retry
+    private void showMessage(@StringRes int messageResId, boolean showRetry) {
         binding.emptyView.setText(messageResId);
-        binding.emptyView.setVisibility(View.VISIBLE);
+        binding.retryButton.setVisibility(showRetry ? View.VISIBLE : View.GONE);
+        binding.messageContainer.setVisibility(View.VISIBLE);
     }
 
 

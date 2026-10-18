@@ -9,6 +9,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,6 +69,10 @@ public class EarthquakeViewModel extends AndroidViewModel {
     }
 
     private void load(String url) {
+
+        EarthquakeUiState current = uiState.getValue();
+        List<Earthquake> previous = (url.equals(lastUrl) && current != null) ? current.getEarthquakes() : Collections.<Earthquake> emptyList();
+
         lastUrl = url;
 
         if (!repository.isOnline()) {

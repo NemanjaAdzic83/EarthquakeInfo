@@ -34,7 +34,12 @@ public class EarthquakeUiState {
     }
 
     public static EarthquakeUiState loading(){
-        return new EarthquakeUiState(Status.LOADING, Collections.emptyList());
+        return loading(Collections.emptyList());
+    }
+
+    // Loading while the previous list stays on screen
+    public static EarthquakeUiState loading(List<Earthquake> previousEarthquakes){
+        return new EarthquakeUiState(Status.LOADING, previousEarthquakes);
     }
 
     public static EarthquakeUiState success(List<Earthquake> earthquakes){
