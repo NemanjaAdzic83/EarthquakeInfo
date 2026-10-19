@@ -8,8 +8,8 @@
     <string name="settings_title">Earthquake Settings</string>
 
     <string name="setting_min_magnitude_label">Minimum Magnitude</string>
-    <string name="setting_min_magnitude_key" translatable="false">min_magnitude</string>
-    <string name="setting_min_magnitude_default" translatable="false">6</string>
+    <string name="setting_min_magnitude_key" translatable="false">min_magnitude_level</string>
+    <string name="setting_min_magnitude_summary">Show earthquakes of this magnitude or stronger</string>
 
     <string name="settings_order_by_label">Order By</string>
     <string name="settings_order_by_key" translatable="false">order_by</string>
@@ -23,4 +23,10 @@
     <string name="error_loading">Could not load earthquakes. Please try again later.</string>
 
     <string name="retry">Try again</string>
+
+    <!-- Compass letters N, S, E, W - translations must keep this order -->
+    <string name="compass_letters">NSEW</string>
+    <!-- %1$s = distance, %2$s = direction-->
+    <string name="location_offset_format">%1$s km %2$s of</string>
+
 </resources>

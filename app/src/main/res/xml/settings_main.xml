@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:title="@string/settings_title">
 
     <ListPreference
@@ -10,11 +11,15 @@
         android:key="@string/settings_order_by_key"
         android:title="@string/settings_order_by_label"/>
 
-    <EditTextPreference
-        android:defaultValue="@string/setting_min_magnitude_default"
-        android:inputType="numberDecimal"
+    <SeekBarPreference
+        android:defaultValue="@integer/setting_main_magnitude_default"
         android:key="@string/setting_min_magnitude_key"
-        android:selectAllOnFocus="true"
-        android:title="@string/setting_min_magnitude_label"/>
+        android:max="9"
+        android:summary="@string/setting_min_magnitude_summary"
+        android:title="@string/setting_min_magnitude_label"
+        app:min="0"
+        app:seekBarIncrement="1"
+        app:showSeekBarValue="true"
+        app:updatesContinuously="false"/>
 
 </PreferenceScreen>

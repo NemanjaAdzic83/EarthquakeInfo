@@ -23,7 +23,7 @@ import java.util.List;
 public final class QueryUtils {
 
     // Networks timeouts in milliseconds
-    private static final int READ_TIMEOUT_MS = 10000;
+    private static final int READ_TIMEOUT_MS = 20000;
     private static final int CONNECT_TIMEOUT_MS = 15000;
 
 

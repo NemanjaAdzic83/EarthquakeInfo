@@ -31,8 +31,7 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
         void onEarthquakeClick(Earthquake earthquake);
     }
 
-    // USGS location looks like "74 km NW of Rumoi, Japan" - we split it at " of "
-    private static final String LOCATION_SEPARATOR = " of ";
+    private final LocationFormatter locationFormatter;
 
     private final OnEarthquakeClickListener clickListener;
 
@@ -44,6 +43,7 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
     public EarthquakeAdapter(Context context, OnEarthquakeClickListener clickListener) {
         super(DIFF_CALLBACK);
         this.clickListener = clickListener;
+        locationFormatter = LocationFormatter.from(context);
 
         // Date in the order used by the phone's language (e.g. "16. окт 2026." or "Oct 16, 2026")
         Locale locale = Locale.getDefault();
@@ -104,16 +104,9 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
             GradientDrawable magnitudeCircle = (GradientDrawable) binding.textViewMagnitude.getBackground().mutate();
             magnitudeCircle.setColor(getMagnitudeColor(context, earthquake.getMagnitude()));
 
-            // Split "74 km NW of Rumoi, Japan" into "74 km NW of" and "Rumoi, Japan"
-            String originalLocation = earthquake.getLocation();
-            if (originalLocation.contains(LOCATION_SEPARATOR)) {
-                String[] parts = originalLocation.split(LOCATION_SEPARATOR, 2);
-                binding.textViewLocationOffset.setText(parts[0] + LOCATION_SEPARATOR);
-                binding.textViewPrimaryLocation.setText(parts[1]);
-            } else {
-                binding.textViewLocationOffset.setText(R.string.near_the);
-                binding.textViewPrimaryLocation.setText(originalLocation);
-            }
+            LocationFormatter.Parts location = locationFormatter.format(earthquake.getLocation());
+            binding.textViewLocationOffset.setText(location.getOffset());
+            binding.textViewPrimaryLocation.setText(location.getPrimaryLocation());
 
             Date date = new Date(earthquake.getTime());
             binding.textViewDate.setText(dateFormat.format(date));

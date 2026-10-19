@@ -80,7 +80,7 @@ public class EarthquakeViewModel extends AndroidViewModel {
             return;
         }
 
-        uiState.setValue(EarthquakeUiState.loading());
+        uiState.setValue(EarthquakeUiState.loading(previous));
 
         executor.execute(() -> {
             EarthquakeUiState newState;

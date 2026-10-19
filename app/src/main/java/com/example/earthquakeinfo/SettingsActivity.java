@@ -15,7 +15,7 @@ import androidx.activity.SystemBarStyle;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
+import androidx.preference.SeekBarPreference;
 
 
 import com.example.earthquakeinfo.databinding.ActivitySettingsBinding;
@@ -66,14 +66,8 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.settings_main, rootKey);
 
-            EditTextPreference minMagnitude = findPreference(getString(R.string.setting_min_magnitude_key));
-            if (minMagnitude != null) {
-                // Show the current value as the summary
-                minMagnitude.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
-                // Numeric keyboard (androidx ignores android:inputType in XML)
-                minMagnitude.setOnBindEditTextListener(editText ->
-                        editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL));
-                // Go back to the list as soon as a new value is chosen
+            SeekBarPreference minMagnitude = findPreference(getString(R.string.setting_min_magnitude_key));
+            if (minMagnitude != null){
                 minMagnitude.setOnPreferenceChangeListener(this::saveAndClose);
             }
 

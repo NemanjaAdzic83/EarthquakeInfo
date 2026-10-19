@@ -30,13 +30,10 @@ public class EarthquakeRepository {
     public String getRequestUrl(){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        String minMagnitude = preferences.getString(
+        int minMagnitude = preferences.getInt(
                 context.getString(R.string.setting_min_magnitude_key),
-                context.getString(R.string.setting_min_magnitude_default));
+                context.getResources().getInteger(R.integer.setting_main_magnitude_default));
 
-        if (TextUtils.isEmpty(minMagnitude)){
-            minMagnitude = context.getString(R.string.setting_min_magnitude_default);
-        }
 
         String orderBy = preferences.getString(
                 context.getString(R.string.settings_order_by_key),
@@ -47,7 +44,7 @@ public class EarthquakeRepository {
         return Uri.parse(USGS_REQUEST_URL).buildUpon()
                 .appendQueryParameter("format","geojson")
                 .appendQueryParameter("limit",RESULT_LIMIT)
-                .appendQueryParameter("minmagnitude", minMagnitude)
+                .appendQueryParameter("minmagnitude", String.valueOf(minMagnitude))
                 .appendQueryParameter("orderby", orderBy)
                 .build()
                 .toString();
