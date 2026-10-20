@@ -1,6 +1,6 @@
 package com.example.earthquakeinfo;
 
-import android.text.TextUtils;
+import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -112,10 +112,11 @@ public final class QueryUtils {
 
     // Parses the JSON response from USGS and returns a list of Earthquake object
     // Returns an empty list if the JSON is empty, throws IOException if it is invalid
-    private static List<Earthquake> extractEarthquakesFromJson(String earthquakeJson) throws IOException {
+    @VisibleForTesting
+    static List<Earthquake> extractEarthquakesFromJson(String earthquakeJson) throws IOException {
         List<Earthquake> earthquakes = new ArrayList<>();
 
-        if (TextUtils.isEmpty(earthquakeJson)){
+        if (earthquakeJson == null || earthquakeJson.isEmpty()){
             return earthquakes;
         }
 

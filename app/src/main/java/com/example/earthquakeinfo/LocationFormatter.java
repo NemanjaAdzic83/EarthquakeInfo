@@ -22,7 +22,7 @@ public class LocationFormatter {
     // Compass letters as USGS sends them, in this exact order
     private static final String ENGLISH_COMPASS = "NSEW";
 
-    private static final String SEPARATOR = "of";
+    private static final String SEPARATOR = " of ";
 
     private final String compassLetters;
     private final String offsetFormat;
