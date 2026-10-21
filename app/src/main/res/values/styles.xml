@@ -6,6 +6,8 @@
         <item name="colorPrimary">@color/color_primary</item>
         <item name="colorOnPrimary">@color/color_on_primary</item>
         <item name="colorSecondary">@color/brand_teal</item>
+        <item name="colorSecondaryContainer">@color/color_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/color_on_secondary_container</item>
 
         <!-- Screen background and its text -->
         <item name="android:colorBackground">@color/color_background</item>
@@ -36,6 +38,12 @@
         <item name="android:layout_marginTop">2dp</item>
         <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <!-- One chip in the quick magnitude filter -->
+    <style name="MagnitudeChip" parent="Widget.Material3.Chip.Filter">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
     </style>
 
 </resources>

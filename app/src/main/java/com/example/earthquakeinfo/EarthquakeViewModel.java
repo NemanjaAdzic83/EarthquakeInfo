@@ -68,6 +68,17 @@ public class EarthquakeViewModel extends AndroidViewModel {
         load(repository.getRequestUrl());
     }
 
+    // Current minimum magnitude, so the screen can mark the matching chip
+    public int getMinMagnitude(){
+        return repository.getMinMagnitude();
+    }
+
+    // Called when user tap a magnitude chip
+    public void setMinMagnitude(int minMagnitude){
+        repository.setMinMagnitude(minMagnitude);
+        loadIfNeeded();
+    }
+
     private void load(String url) {
 
         EarthquakeUiState current = uiState.getValue();

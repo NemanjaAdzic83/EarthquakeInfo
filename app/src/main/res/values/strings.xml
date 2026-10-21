@@ -38,4 +38,11 @@
     <string name="details_show_on_map">Show on map</string>
     <string name="details_open_usgs">USGS page</string>
 
+    <!-- Quick magnitude filter on the main screen -->
+    <string name="filter_all">All</string>
+    <string name="filter_4" translatable="false">4+</string>
+    <string name="filter_5" translatable="false">5+</string>
+    <string name="filter_6" translatable="false">6+</string>
+    <string name="filter_7" translatable="false">7+</string>
+
 </resources>

@@ -27,12 +27,25 @@ public class EarthquakeRepository {
         this.context = context.getApplicationContext();
     }
 
+    // Minimum magnitude chosen by the user(slider in settings or chips on the main screen)
+    public int getMinMagnitude(){
+        return preferences().getInt(
+                context.getString(R.string.setting_min_magnitude_key),
+                context.getResources().getInteger(R.integer.setting_main_magnitude_default));
+    }
+
+    // Save a new minimum magnitude - the same value the Setting slider shows
+    public void setMinMagnitude(int minMagnitude){
+        preferences().edit().putInt(context.getString(R.string.setting_min_magnitude_key),minMagnitude).apply();
+    }
+    private SharedPreferences preferences(){
+        return PreferenceManager.getDefaultSharedPreferences(context);
+    }
+
     public String getRequestUrl(){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        int minMagnitude = preferences.getInt(
-                context.getString(R.string.setting_min_magnitude_key),
-                context.getResources().getInteger(R.integer.setting_main_magnitude_default));
+        int minMagnitude = getMinMagnitude();
 
 
         String orderBy = preferences.getString(
@@ -50,6 +63,8 @@ public class EarthquakeRepository {
                 .toString();
 
     }
+
+
 
     public List<Earthquake> fetchEarthquakes(String requestUrl) throws IOException{
         return QueryUtils.fetchEarthquakeData(requestUrl);

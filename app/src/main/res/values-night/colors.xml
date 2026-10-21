@@ -9,4 +9,7 @@
     <color name="color_on_surface">#E3E8EC</color>
     <color name="color_on_surface_variant">#A9B4BD</color>
     <color name="toolbar_background">@color/brand_navy_dark</color>
+
+    <color name="color_secondary_container">#00504F</color>
+    <color name="color_on_secondary_container">#B2F1F0</color>
 </resources>

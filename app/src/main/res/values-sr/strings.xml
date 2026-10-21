@@ -29,4 +29,6 @@
     <string name="details_show_on_map">Прикажи на мапи</string>
     <string name="details_open_usgs">USGS страница</string>
 
+    <string name="filter_all">Све</string>
+
 </resources>

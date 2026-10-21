@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.earthquakeinfo.databinding.ActivityEarthquakeBinding;
+import com.google.android.material.chip.Chip;
 
 
 public class EarthquakeActivity extends AppCompatActivity {
@@ -25,12 +26,12 @@ public class EarthquakeActivity extends AppCompatActivity {
 
     // Generated from activity_earthquake.xml - gives direct access to all views of the screen
     private ActivityEarthquakeBinding binding;
-
     // adapter for the list of earthquakes
     private EarthquakeAdapter adapter;
-
     // loads earthquakes in the background and keeps them across screen rotation
     private EarthquakeViewModel viewModel;
+    private boolean updatingChips;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +62,20 @@ public class EarthquakeActivity extends AppCompatActivity {
         // Try again button below the error message
         binding.retryButton.setOnClickListener( v -> viewModel.refresh());
 
+        // Quick magnitude filter: All , 4+, 5+, 6+, 7+
+        binding.magnitudeChips.setOnCheckedStateChangeListener(((group, checkedIds) -> {
+            if (updatingChips){
+                return;
+            }
+            if (checkedIds.isEmpty()){
+                // The selected chip was tapped again - keep it selected
+                updateChips(viewModel.getMinMagnitude());
+                return;
+            }
+            Chip chip = group.findViewById(checkedIds.get(0));
+            viewModel.setMinMagnitude(Integer.parseInt((String) chip.getTag()));
+        }));
+
         // show the earthquakes whenever the ViewModel delivers a new list
         viewModel = new ViewModelProvider(this).get(EarthquakeViewModel.class);
         viewModel.getUiState().observe(this, this::render);
@@ -79,6 +94,21 @@ public class EarthquakeActivity extends AppCompatActivity {
         // Called on first start and when returning from Settings:
         // downloads data only if there is none yet or the settings have changed
         viewModel.loadIfNeeded();
+
+        // Mark the chip that matches the current settings
+        updateChips(viewModel.getMinMagnitude());
+    }
+
+    private void updateChips(int minMagnitude) {
+        updatingChips = true;
+        binding.magnitudeChips.clearCheck();
+        for (int i = 0; i < binding.magnitudeChips.getChildCount(); i++){
+            Chip chip = (Chip) binding.magnitudeChips.getChildAt(i);
+            if (String.valueOf(minMagnitude).equals(chip.getTag())){
+                chip.setChecked(true);
+            }
+        }
+        updatingChips = false;
     }
 
     /* Draws the screen for the given state

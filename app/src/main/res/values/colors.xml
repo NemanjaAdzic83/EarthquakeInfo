@@ -28,4 +28,7 @@
 
     <!-- Dark text for the light circles (4 and 5), white text is hard to read on yellow -->
     <color name="magnitude_text_dark">#1D2830</color>
+
+    <color name="color_secondary_container">#B2EBEA</color>
+    <color name="color_on_secondary_container">#00302F</color>
 </resources>
