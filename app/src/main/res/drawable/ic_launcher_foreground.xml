@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Launcher icon foreground: epicentre rings and a seismogram
+         colored like the magnitude circles in the list.
+         Only the centre circle (diameter 66) is always visible; the rest may be cut off. -->
+
+    <!-- Epicentre rings (outer = faint, inner = stronger) -->
+    <path
+        android:pathData="M20,54 a34,34 0 1,0 68,0 a34,34 0 1,0 -68,0"
+        android:strokeColor="#10CAC9"
+        android:strokeAlpha="0.18"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M28,54 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0"
+        android:strokeColor="#10CAC9"
+        android:strokeAlpha="0.3"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M36,54 a18,18 0 1,0 36,0 a18,18 0 1,0 -36,0"
+        android:strokeColor="#10CAC9"
+        android:strokeAlpha="0.45"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000" />
+
+    <!-- Seismogram: calm (teal) -> stronger (yellow, orange) -> strongest (red) -> calm -->
+    <path
+        android:pathData="M22.75,54 L31.5,54 L35.25,50.87"
+        android:strokeColor="#00897B"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M35.25,50.87 L39,57.75"
+        android:strokeColor="#FBC02D"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M39,57.75 L42.75,44"
+        android:strokeColor="#FB8C00"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M42.75,44 L46.5,66.5"
+        android:strokeColor="#E53935"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M46.5,66.5 L50.56,33.37"
+        android:strokeColor="#B71C1C"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M50.56,33.37 L54,74.63 L57.44,40.87"
+        android:strokeColor="#E53935"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M57.44,40.87 L61.5,62.75"
+        android:strokeColor="#FB8C00"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M61.5,62.75 L65.25,49"
+        android:strokeColor="#FBC02D"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M65.25,49 L69,56.81 L72.75,52.87 L76.5,54 L85.25,54"
+        android:strokeColor="#00897B"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+</vector>
