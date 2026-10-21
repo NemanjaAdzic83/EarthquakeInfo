@@ -16,6 +16,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Helper methods related to requesting and receiving earthquake data from USGS.
@@ -125,7 +126,8 @@ public final class QueryUtils {
             JSONArray features = root.getJSONArray("features");
 
             for (int i = 0; i < features.length(); i++){
-                JSONObject properties = features.getJSONObject(i).getJSONObject("properties");
+                JSONObject feature = features.getJSONObject(i);
+                JSONObject properties = feature.getJSONObject("properties");
 
                 if (properties.isNull("mag")){
                     continue;
@@ -134,8 +136,25 @@ public final class QueryUtils {
                 String place = properties.isNull("place") ? "" : properties.getString("place");
                 long time = properties.getLong("time");
                 String url = properties.optString("url");
+                boolean tsunami = properties.optInt("tsunami",0) == 1;
 
-                earthquakes.add(new Earthquake(magnitude, place, time, url));
+                // coordinates: longitude, latitude, depth
+                // GeoJSON puts LONGITUDE first, than LATITUDE
+                double longitude = Double.NaN;
+                double latitude = Double.NaN;
+                double depth = Double.NaN;
+
+                JSONObject geometry = feature.optJSONObject("geometry");
+                if (geometry != null){
+                    JSONArray coordinates = geometry.optJSONArray("coordinates");
+                    if (coordinates != null && coordinates.length() >= 2){
+                        longitude = coordinates.optDouble(0,Double.NaN);
+                        latitude = coordinates.optDouble(1,Double.NaN);
+                        depth = coordinates.optDouble(2,Double.NaN);
+                    }
+                }
+
+                earthquakes.add(new Earthquake(magnitude, place, time, url,latitude,longitude,depth,tsunami));
             }
         }catch (JSONException e){
             throw new IOException("Problem parsing the earthquake JSON results", e);

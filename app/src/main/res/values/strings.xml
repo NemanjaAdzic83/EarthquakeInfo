@@ -29,4 +29,13 @@
     <!-- %1$s = distance, %2$s = direction-->
     <string name="location_offset_format">%1$s km %2$s of</string>
 
+    <!-- Details panel -->
+    <string name="details_time">Time</string>
+    <string name="details_depth">Depth</string>
+    <string name="details_coordinates">Coordinates</string>
+    <string name="depth_format">%1$.1f km</string>
+    <string name="details_tsunami">⚠ Tsunami warning issued for this earthquake</string>
+    <string name="details_show_on_map">Show on map</string>
+    <string name="details_open_usgs">USGS page</string>
+
 </resources>

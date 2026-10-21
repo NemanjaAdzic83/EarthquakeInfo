@@ -16,7 +16,8 @@ import java.util.List;
 public class EarthquakeUiStateTest {
 
     private static Earthquake sampleEarthquake() {
-        return new Earthquake(6.5, "73 km WSW of Rumoi, Japan", 1_700_000_000_000L, "https://example.com");
+        return new Earthquake(6.5, "73 km WSW of Rumoi, Japan", 1_700_000_000_000L, "https://example.com",
+                43.61, 141.18, 10.0, false);
     }
 
     @Test

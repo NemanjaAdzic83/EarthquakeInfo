@@ -101,4 +101,15 @@ public class LocationFormatterTest {
 
         assertEquals("73 km WSW од", broken.format("73 km WSW of Rumoi, Japan").getOffset());
     }
+
+    @Test
+    public void formatCoordinates_english_northAndEast() {
+        assertEquals("43.61° N, 141.18° E", english.formatCoordinates(43.61, 141.18));
+    }
+
+    @Test
+    public void formatCoordinates_serbian_southAndWest() {
+        // Negative latitude = south, negative longitude = west
+        assertEquals("33.45° Ј, 70.67° З", serbian.formatCoordinates(-33.45, -70.67));
+    }
 }

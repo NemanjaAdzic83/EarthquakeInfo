@@ -6,10 +6,10 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.earthquakeinfo.databinding.ListItemBinding;
 
 import java.text.DateFormat;
@@ -102,7 +102,8 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
             // does not change the color of the circles in other rows.
             binding.textViewMagnitude.setText(magnitudeFormat.format(earthquake.getMagnitude()));
             GradientDrawable magnitudeCircle = (GradientDrawable) binding.textViewMagnitude.getBackground().mutate();
-            magnitudeCircle.setColor(getMagnitudeColor(context, earthquake.getMagnitude()));
+            magnitudeCircle.setColor(MagnitudeColors.get(context,earthquake.getMagnitude()));
+            binding.textViewMagnitude.setTextColor(MagnitudeColors.getTextColor(context,earthquake.getMagnitude()));
 
             LocationFormatter.Parts location = locationFormatter.format(earthquake.getLocation());
             binding.textViewLocationOffset.setText(location.getOffset());
@@ -112,46 +113,6 @@ public class EarthquakeAdapter extends ListAdapter<Earthquake, EarthquakeAdapter
             binding.textViewDate.setText(dateFormat.format(date));
             binding.textViewTime.setText(timeFormat.format(date));
         }
-    }
-
-    // Returns the circle color for the magnitude (1 = blue ... 10+ = dark red)
-    private static int getMagnitudeColor(Context context, double magnitude) {
-        int colorResId;
-        switch ((int) Math.floor(magnitude)) {
-            case 0:
-            case 1:
-                colorResId = R.color.magnitude1;
-                break;
-            case 2:
-                colorResId = R.color.magnitude2;
-                break;
-            case 3:
-                colorResId = R.color.magnitude3;
-                break;
-            case 4:
-                colorResId = R.color.magnitude4;
-                break;
-            case 5:
-                colorResId = R.color.magnitude5;
-                break;
-            case 6:
-                colorResId = R.color.magnitude6;
-                break;
-            case 7:
-                colorResId = R.color.magnitude7;
-                break;
-            case 8:
-                colorResId = R.color.magnitude8;
-                break;
-            case 9:
-                colorResId = R.color.magnitude9;
-                break;
-            default:
-                colorResId = R.color.magnitude10plus;
-                break;
-        }
-        // Converts the color resource ID into an actual color value
-        return ContextCompat.getColor(context, colorResId);
     }
 
     /*

@@ -1,6 +1,7 @@
 package com.example.earthquakeinfo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -17,15 +18,20 @@ import java.util.List;
 public class QueryUtilsTest {
 
     // Three earthquakes: a normal one, one without magnitude and one without place
+    // Three earthquakes: a normal one (with coordinates and a tsunami flag),
+    // one without magnitude, and one without place and without geometry
     private static final String USGS_JSON = """
             {
               "features": [
                 { "properties": { "mag": 6.5, "place": "73 km WSW of Rumoi, Japan",
-                                  "time": 1700000000000, "url": "https://earthquake.usgs.gov/a" } },
+                                  "time": 1700000000000, "url": "https://earthquake.usgs.gov/a",
+                                  "tsunami": 1 },
+                  "geometry": { "type": "Point", "coordinates": [141.18, 43.61, 10.5] } },
                 { "properties": { "mag": null, "place": "Somewhere",
                                   "time": 1700000000001, "url": "https://earthquake.usgs.gov/b" } },
                 { "properties": { "mag": 4.2, "place": null,
-                                  "time": 1700000000002, "url": "https://earthquake.usgs.gov/c" } }
+                                  "time": 1700000000002, "url": "https://earthquake.usgs.gov/c",
+                                  "tsunami": 0 } }
               ]
             }
             """;
@@ -79,5 +85,32 @@ public class QueryUtilsTest {
     public void extract_jsonWithoutFeatures_throwsIOException() {
         assertThrows(IOException.class,
                 () -> QueryUtils.extractEarthquakesFromJson("{ \"type\": \"FeatureCollection\" }"));
+    }
+    @Test
+    public void extract_coordinates_longitudeFirstThenLatitudeThenDepth() throws IOException {
+        Earthquake first = QueryUtils.extractEarthquakesFromJson(USGS_JSON).get(0);
+
+        // GeoJSON order is [longitude, latitude, depth]
+        assertEquals(43.61, first.getLatitude(), 0.0001);
+        assertEquals(141.18, first.getLongitude(), 0.0001);
+        assertEquals(10.5, first.getDepth(), 0.0001);
+        assertTrue(first.hasCoordinates());
+        assertTrue(first.hasDepth());
+    }
+
+    @Test
+    public void extract_tsunamiFlag_isRead() throws IOException {
+        List<Earthquake> earthquakes = QueryUtils.extractEarthquakesFromJson(USGS_JSON);
+
+        assertTrue(earthquakes.get(0).isTsunami());
+        assertFalse(earthquakes.get(1).isTsunami());
+    }
+
+    @Test
+    public void extract_noGeometry_hasNoCoordinates() throws IOException {
+        Earthquake withoutGeometry = QueryUtils.extractEarthquakesFromJson(USGS_JSON).get(1);
+
+        assertFalse(withoutGeometry.hasCoordinates());
+        assertFalse(withoutGeometry.hasDepth());
     }
 }

@@ -69,6 +69,19 @@ public class LocationFormatter {
         return translated.toString();
     }
 
+    /*
+    Formats coordinates for the details screen, e.g. (35.12, -139.45) -> "35.12° N, 139.45° W"
+    In Serbian: "35.12° С, 139.45° З". Positive latitude = north, positive longitude = east.
+ */
+    public String formatCoordinates(double latitude, double longitude) {
+        return formatCoordinate(latitude, 'N', 'S') + ", " + formatCoordinate(longitude, 'E', 'W');
+    }
+
+    private String formatCoordinate(double value, char positive, char negative) {
+        char letter = translateDirection(String.valueOf(value >= 0 ? positive : negative)).charAt(0);
+        // Locale.ROOT: always a decimal point, so coordinates look the same in every language
+        return String.format(Locale.ROOT, "%.2f° %c", Math.abs(value), letter);
+    }
 
 
     public static final class Parts{

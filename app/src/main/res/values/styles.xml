@@ -19,4 +19,23 @@
         <item name="colorOnSurfaceVariant">@color/color_on_surface_variant</item>
     </style>
 
+
+    <!-- Small grey title above a value in the details panel ("Time", "Depth"...) -->
+    <style name="DetailsLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelMedium</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- The value below the title in the details panel -->
+    <style name="DetailsValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
 </resources>

@@ -20,4 +20,13 @@
     <string name="compass_letters">СЈИЗ</string>
     <string name="location_offset_format">%1$s km %2$s од</string>
 
+    <!-- Панел са детаљима -->
+    <string name="details_time">Вријеме</string>
+    <string name="details_depth">Дубина</string>
+    <string name="details_coordinates">Координате</string>
+    <string name="depth_format">%1$.1f km</string>
+    <string name="details_tsunami">⚠ Издато упозорење на цунами за овај земљотрес</string>
+    <string name="details_show_on_map">Прикажи на мапи</string>
+    <string name="details_open_usgs">USGS страница</string>
+
 </resources>

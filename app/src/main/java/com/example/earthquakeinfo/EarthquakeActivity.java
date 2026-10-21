@@ -3,7 +3,6 @@ package com.example.earthquakeinfo;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -51,10 +50,7 @@ public class EarthquakeActivity extends AppCompatActivity {
             return windowInsets;
         });
 
-        adapter = new EarthquakeAdapter(this, earthquake -> {
-            Uri earthquakeUri = Uri.parse(earthquake.getUrl());
-            startActivity(new Intent(Intent.ACTION_VIEW,earthquakeUri));
-        });
+        adapter = new EarthquakeAdapter(this, this::showDetails);
         binding.list.setAdapter(adapter);
 
         //Pull down to refresh , always download fresh data
@@ -68,6 +64,13 @@ public class EarthquakeActivity extends AppCompatActivity {
         // show the earthquakes whenever the ViewModel delivers a new list
         viewModel = new ViewModelProvider(this).get(EarthquakeViewModel.class);
         viewModel.getUiState().observe(this, this::render);
+    }
+
+    private void showDetails(Earthquake earthquake) {
+        if (getSupportFragmentManager().findFragmentByTag(EarthquakeDetailsBottomSheet.TAG) == null){
+            EarthquakeDetailsBottomSheet.newInstance(earthquake)
+                    .show(getSupportFragmentManager(),EarthquakeDetailsBottomSheet.TAG);
+        }
     }
 
     @Override
