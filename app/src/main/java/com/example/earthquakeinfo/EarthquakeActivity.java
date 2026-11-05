@@ -19,6 +19,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.earthquakeinfo.databinding.ActivityEarthquakeBinding;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+
+import java.util.List;
 
 
 public class EarthquakeActivity extends AppCompatActivity {
@@ -62,19 +65,9 @@ public class EarthquakeActivity extends AppCompatActivity {
         // Try again button below the error message
         binding.retryButton.setOnClickListener( v -> viewModel.refresh());
 
-        // Quick magnitude filter: All , 4+, 5+, 6+, 7+
-        binding.magnitudeChips.setOnCheckedStateChangeListener(((group, checkedIds) -> {
-            if (updatingChips){
-                return;
-            }
-            if (checkedIds.isEmpty()){
-                // The selected chip was tapped again - keep it selected
-                updateChips(viewModel.getMinMagnitude());
-                return;
-            }
-            Chip chip = group.findViewById(checkedIds.get(0));
-            viewModel.setMinMagnitude(Integer.parseInt((String) chip.getTag()));
-        }));
+        // Quick magnitude filter: All , 4+, 5+, 6+, 7+ and period 24h, 7 days , 30days
+        binding.magnitudeChips.setOnCheckedStateChangeListener(this::onChipsChanged);
+        binding.periodChips.setOnCheckedStateChangeListener(this::onChipsChanged);
 
         // show the earthquakes whenever the ViewModel delivers a new list
         viewModel = new ViewModelProvider(this).get(EarthquakeViewModel.class);
@@ -96,20 +89,46 @@ public class EarthquakeActivity extends AppCompatActivity {
         viewModel.loadIfNeeded();
 
         // Mark the chip that matches the current settings
-        updateChips(viewModel.getMinMagnitude());
+       updateChips();
     }
 
-    private void updateChips(int minMagnitude) {
+    // Shared listener for both chips group
+    private void onChipsChanged(ChipGroup group, List<Integer> checkedIds){
+        if (updatingChips){
+            return;
+        }
+        if (checkedIds.isEmpty()){
+            // The selected chip was tapped again - keep it selected
+            updateChips();
+            return;
+        }
+        Chip chip = group.findViewById(checkedIds.get(0));
+        int value = Integer.parseInt((String) chip.getTag());
+
+        if (group == binding.magnitudeChips){
+            viewModel.setMinMagnitude(value);
+        }else {
+            viewModel.setPeriodDays(value);
+        }
+    }
+
+    private void updateChips(){
         updatingChips = true;
-        binding.magnitudeChips.clearCheck();
-        for (int i = 0; i < binding.magnitudeChips.getChildCount(); i++){
-            Chip chip = (Chip) binding.magnitudeChips.getChildAt(i);
-            if (String.valueOf(minMagnitude).equals(chip.getTag())){
+        checkChipWithTag(binding.magnitudeChips, viewModel.getMinMagnitude());
+        checkChipWithTag(binding.periodChips, viewModel.getPeriodDays());
+        updatingChips = false;
+    }
+
+    private void checkChipWithTag(ChipGroup group, int value) {
+        group.clearCheck();
+        for (int i = 0; i < group.getChildCount(); i++){
+            Chip chip = (Chip) group.getChildAt(i);
+            if (String.valueOf(value).equals(chip.getTag())){
                 chip.setChecked(true);
             }
         }
-        updatingChips = false;
     }
+
 
     /* Draws the screen for the given state
        This is the  only place that change the visibility of the list, message and indicators

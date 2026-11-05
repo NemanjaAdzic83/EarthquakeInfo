@@ -45,4 +45,11 @@
     <string name="filter_6" translatable="false">6+</string>
     <string name="filter_7" translatable="false">7+</string>
 
+    <string name="setting_period_key" translatable="false">period_days</string>
+
+    <!-- Period filter on the main screen -->
+    <string name="filter_day">24 h</string>
+    <string name="filter_week">7 days</string>
+    <string name="filter_month">30 days</string>
+
 </resources>

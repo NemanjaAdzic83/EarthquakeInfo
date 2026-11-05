@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="setting_main_magnitude_default">6</integer>
+    <integer name="setting_period_default">30</integer>
 </resources>

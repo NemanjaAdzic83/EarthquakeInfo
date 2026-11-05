@@ -8,9 +8,14 @@ import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.VisibleForTesting;
 import androidx.preference.PreferenceManager;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,6 +27,8 @@ public class EarthquakeRepository {
     private static final String RESULT_LIMIT = "25";
 
     private final Context context;
+    private static final DateTimeFormatter USGS_TIME =
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC);
 
     public EarthquakeRepository(Context context){
         this.context = context.getApplicationContext();
@@ -37,6 +44,25 @@ public class EarthquakeRepository {
     // Save a new minimum magnitude - the same value the Setting slider shows
     public void setMinMagnitude(int minMagnitude){
         preferences().edit().putInt(context.getString(R.string.setting_min_magnitude_key),minMagnitude).apply();
+    }
+
+    //Number of days back from now : 1, 7 and  30 days (chips on the main screen)
+    public int getPeriodDays(){
+        return preferences().getInt(
+                context.getString(R.string.setting_period_key),
+                context.getResources().getInteger(R.integer.setting_period_default));
+    }
+
+    public void setPeriodDays(int days){
+        preferences().edit().putInt(context.getString(R.string.setting_period_key),days).apply();
+    }
+
+    @VisibleForTesting
+    static String startTimeFor(int days, long nowMillis) {
+        Instant start = Instant.ofEpochMilli(nowMillis)
+                .minus(days, ChronoUnit.DAYS)
+                .truncatedTo(ChronoUnit.HOURS);
+        return USGS_TIME.format(start);
     }
     private SharedPreferences preferences(){
         return PreferenceManager.getDefaultSharedPreferences(context);
@@ -59,6 +85,7 @@ public class EarthquakeRepository {
                 .appendQueryParameter("limit",RESULT_LIMIT)
                 .appendQueryParameter("minmagnitude", String.valueOf(minMagnitude))
                 .appendQueryParameter("orderby", orderBy)
+                .appendQueryParameter("starttime",startTimeFor(getPeriodDays(),System.currentTimeMillis()))
                 .build()
                 .toString();
 

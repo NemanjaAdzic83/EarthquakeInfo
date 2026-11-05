@@ -31,4 +31,8 @@
 
     <string name="filter_all">Све</string>
 
+    <string name="filter_day">24 сата</string>
+    <string name="filter_week">7 дана</string>
+    <string name="filter_month">30 дана</string>
+
 </resources>

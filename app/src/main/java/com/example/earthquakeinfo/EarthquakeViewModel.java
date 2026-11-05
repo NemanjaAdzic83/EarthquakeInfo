@@ -79,6 +79,17 @@ public class EarthquakeViewModel extends AndroidViewModel {
         loadIfNeeded();
     }
 
+    // Current period in days, so the screen can mark the matching chip
+    public int getPeriodDays(){
+        return repository.getPeriodDays();
+    }
+
+    // Called when user taps a period chip
+    public void setPeriodDays(int days){
+        repository.setPeriodDays(days);
+        loadIfNeeded();
+    }
+
     private void load(String url) {
 
         EarthquakeUiState current = uiState.getValue();
