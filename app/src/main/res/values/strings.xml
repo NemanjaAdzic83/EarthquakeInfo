@@ -52,4 +52,8 @@
     <string name="filter_week">7 days</string>
     <string name="filter_month">30 days</string>
 
+    <string name="filter_near_me">Near me (500 km)</string>
+    <string name="location_permission_denied">Without location permission the app cannot show earthquakes near you.</string>
+    <string name="location_unavailable">Location is not available. Turn on location on your device.</string>
+
 </resources>

@@ -71,6 +71,11 @@
         android:layout_height="wrap_content"
         android:scrollbars="none">
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/period_chips"
             android:layout_width="wrap_content"
@@ -100,6 +105,17 @@
                 android:text="@string/filter_month" />
 
         </com.google.android.material.chip.ChipGroup>
+
+            <!-- Nije dio grupew, moze se kombinovati sa bilo kojim periodom -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_near_me"
+                style="@style/MagnitudeChip"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="12dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/filter_near_me"/>
+
+        </LinearLayout>
     </HorizontalScrollView>
 
     <!-- RelativeLayout allows the list, empty view and progress bar to overlap -->

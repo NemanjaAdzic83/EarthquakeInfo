@@ -35,4 +35,8 @@
     <string name="filter_week">7 дана</string>
     <string name="filter_month">30 дана</string>
 
+    <string name="filter_near_me">Близу мене (500 km)</string>
+    <string name="location_permission_denied">Без дозволе за локацију не могу се приказати земљотреси у вашој близини.</string>
+    <string name="location_unavailable">Локација није доступна. Укључите локацију на уређају.</string>
+
 </resources>

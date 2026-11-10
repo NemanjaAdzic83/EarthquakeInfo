@@ -123,6 +123,22 @@ public class EarthquakeViewModel extends AndroidViewModel {
         });
     }
 
+    public boolean isNearMe(){
+        return repository.isNearMe();
+    }
+
+    // Turning "near me" chip off
+    public void setNearMe(boolean enabled){
+        repository.setNearMe(enabled);
+        loadIfNeeded();
+    }
+
+    // A new location arrived - reloads only i the rounded location changed
+    public void setNearMeLocation(double latitude, double longitude){
+        repository.serNearMeLocation(latitude,longitude);
+        loadIfNeeded();
+    }
+
     @Override
     protected void onCleared() {
         executor.shutdownNow();

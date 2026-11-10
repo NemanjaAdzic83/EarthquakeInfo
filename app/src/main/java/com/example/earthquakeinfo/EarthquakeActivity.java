@@ -1,12 +1,21 @@
 package com.example.earthquakeinfo;
 
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
+import android.annotation.SuppressLint;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
+
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
@@ -20,6 +29,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.earthquakeinfo.databinding.ActivityEarthquakeBinding;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 
 import java.util.List;
 
@@ -69,10 +80,22 @@ public class EarthquakeActivity extends AppCompatActivity {
         binding.magnitudeChips.setOnCheckedStateChangeListener(this::onChipsChanged);
         binding.periodChips.setOnCheckedStateChangeListener(this::onChipsChanged);
 
+        binding.chipNearMe.setOnCheckedChangeListener((button, checked) ->{
+            if (updatingChips){
+                return;
+            }
+            if (checked){
+                enableNearMe();
+            }else {
+                viewModel.setNearMe(false);
+            }
+        });
+
         // show the earthquakes whenever the ViewModel delivers a new list
         viewModel = new ViewModelProvider(this).get(EarthquakeViewModel.class);
         viewModel.getUiState().observe(this, this::render);
     }
+
 
     private void showDetails(Earthquake earthquake) {
         if (getSupportFragmentManager().findFragmentByTag(EarthquakeDetailsBottomSheet.TAG) == null){
@@ -84,12 +107,19 @@ public class EarthquakeActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Called on first start and when returning from Settings:
-        // downloads data only if there is none yet or the settings have changed
-        viewModel.loadIfNeeded();
 
-        // Mark the chip that matches the current settings
-       updateChips();
+        // "Near me" stays on only while the app still has the location permission
+        if (viewModel.isNearMe() && !hasLocationPermission()){
+            viewModel.setNearMe(false);
+        }else {
+            viewModel.loadIfNeeded();
+        }
+
+        updateChips();
+
+        if (viewModel.isNearMe()){
+            requestLocation(false);
+        }
     }
 
     // Shared listener for both chips group
@@ -116,8 +146,19 @@ public class EarthquakeActivity extends AppCompatActivity {
         updatingChips = true;
         checkChipWithTag(binding.magnitudeChips, viewModel.getMinMagnitude());
         checkChipWithTag(binding.periodChips, viewModel.getPeriodDays());
+        binding.chipNearMe.setChecked(viewModel.isNearMe());
         updatingChips = false;
     }
+
+    // Shows the system "Allow location?" dialog and receive the answer
+    private final ActivityResultLauncher<String> locationPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+        if (granted){
+            requestLocation(true);
+        }else {
+            setNearMeChip(false);
+            Toast.makeText(this, R.string.location_permission_denied, Toast.LENGTH_SHORT).show();
+        }
+    });
 
     private void checkChipWithTag(ChipGroup group, int value) {
         group.clearCheck();
@@ -179,5 +220,56 @@ public class EarthquakeActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void enableNearMe() {
+        if (hasLocationPermission()) {
+            requestLocation(true);
+        } else {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION);
+        }
+    }
+
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /*
+        Asks the system for the current (approximate) location.
+        userAction = true  -> the user just tapped the chip: if there is no location, say so and uncheck the chip
+        userAction = false -> silent refresh in onStart: if it fails, keep the last saved location
+     */
+    @SuppressLint("MissingPermission") // checked by hasLocationPermission() at the start
+    private void requestLocation(boolean userAction) {
+        if (!hasLocationPermission()) {
+            return;
+        }
+        LocationServices.getFusedLocationProviderClient(this)
+                .getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        viewModel.setNearMeLocation(location.getLatitude(), location.getLongitude());
+                    } else if (userAction) {
+                        onLocationUnavailable();
+                    }
+                })
+                .addOnFailureListener(this, e -> {
+                    if (userAction) {
+                        onLocationUnavailable();
+                    }
+                });
+    }
+
+    private void onLocationUnavailable() {
+        setNearMeChip(false);
+        Toast.makeText(this, R.string.location_unavailable, Toast.LENGTH_LONG).show();
+    }
+
+    // Changes the chip from code without triggering its listener
+    private void setNearMeChip(boolean checked) {
+        updatingChips = true;
+        binding.chipNearMe.setChecked(checked);
+        updatingChips = false;
     }
 }
